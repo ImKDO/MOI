@@ -77,14 +77,14 @@ def sample_next_direction(normal: np.ndarray, view_dir: np.ndarray, previous_eve
     n = normalize(normal)
     v = normalize(view_dir)
 
-    # Исправление TODO(1):
-    # Для диффузного предыдущего события продолжаем трассировку
-    # по косинусно-взвешенной полусфере, а не пытаемся использовать
-    # только зеркальный сценарий.
+    # Fix TODO(1):
+    # For a diffuse previous event, continue tracing with a
+    # cosine-weighted hemisphere sample instead of using
+    # only the specular reflection path.
     if previous_event == "diffuse":
         return cosine_weighted_hemisphere_sample(n, rng)
 
-    # Для "specular" и "camera" сохраняем отражение как раньше.
+    # For "specular" and "camera" keep reflection behavior.
     return normalize(2.0 * np.dot(n, v) * n - v)
 
 
@@ -111,7 +111,7 @@ def shade_point(
 
     diffuse = (1.0 - metallic) * albedo / np.pi
 
-    # TODO(2): второй метод BRDF: Cook-Torrance
+    # Second BRDF method: Cook-Torrance
     if method == "cook_torrance":
         specular = cook_torrance_specular(n, v, l, roughness, f0)
     elif method == "blinn_phong":
