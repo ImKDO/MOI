@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 
-MODULE_PATH = pathlib.Path('/home/runner/work/MOI/MOI/lr4_path_tracer (2).py')
+MODULE_PATH = pathlib.Path('/home/runner/work/MOI/MOI/lr4_path_tracer_2.py')
 spec = importlib.util.spec_from_file_location('lr4_path_tracer', MODULE_PATH)
 module = importlib.util.module_from_spec(spec)
 assert spec is not None and spec.loader is not None
