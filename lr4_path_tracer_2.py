@@ -1,6 +1,9 @@
 import numpy as np
 
 EPS = 1e-8
+MIN_ROUGHNESS = 0.02
+DEFAULT_SHININESS = 64.0
+TANGENT_SELECTION_THRESHOLD = 0.9
 
 
 def normalize(v: np.ndarray) -> np.ndarray:
@@ -15,7 +18,7 @@ def fresnel_schlick(cos_theta: float, f0: np.ndarray) -> np.ndarray:
 
 
 def distribution_ggx(n: np.ndarray, h: np.ndarray, roughness: float) -> float:
-    a = max(roughness * roughness, 0.02)
+    a = max(roughness * roughness, MIN_ROUGHNESS)
     a2 = a * a
     ndoth = max(float(np.dot(n, h)), 0.0)
     ndoth2 = ndoth * ndoth
@@ -24,7 +27,7 @@ def distribution_ggx(n: np.ndarray, h: np.ndarray, roughness: float) -> float:
 
 
 def geometry_schlick_ggx(ndotx: float, roughness: float) -> float:
-    r = max(roughness, 0.02) + 1.0
+    r = max(roughness, MIN_ROUGHNESS) + 1.0
     k = (r * r) / 8.0
     return ndotx / max(ndotx * (1.0 - k) + k, EPS)
 
@@ -50,7 +53,7 @@ def cook_torrance_specular(n: np.ndarray, v: np.ndarray, l: np.ndarray, roughnes
     return (d * g * f) / max(4.0 * ndotv * ndotl, EPS)
 
 
-def blinn_phong_specular(n: np.ndarray, v: np.ndarray, l: np.ndarray, shininess: float = 64.0) -> np.ndarray:
+def blinn_phong_specular(n: np.ndarray, v: np.ndarray, l: np.ndarray, shininess: float = DEFAULT_SHININESS) -> np.ndarray:
     h = normalize(v + l)
     ndoth = max(float(np.dot(n, h)), 0.0)
     return np.array([ndoth ** shininess] * 3)
@@ -65,7 +68,11 @@ def cosine_weighted_hemisphere_sample(normal: np.ndarray, rng: np.random.Generat
     z = np.sqrt(max(1.0 - r2, 0.0))
 
     normal = normalize(normal)
-    tangent = np.array([1.0, 0.0, 0.0]) if abs(normal[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+    tangent = (
+        np.array([1.0, 0.0, 0.0])
+        if abs(normal[0]) < TANGENT_SELECTION_THRESHOLD
+        else np.array([0.0, 1.0, 0.0])
+    )
     tangent = normalize(np.cross(tangent, normal))
     bitangent = np.cross(normal, tangent)
     world = x * tangent + y * bitangent + z * normal
